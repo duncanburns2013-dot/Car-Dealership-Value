@@ -270,7 +270,7 @@ export default function App(){
                 <Stat label="Extra interest" value={$$(xInt)}       sub="vs 60-month loan"        tone="red"/>
               </div>
               <Alert tone="amber">
-                Stretching to {strMo} months created <shtrong style={{fontWeight:6h00}}>{$d(leg)}/mo of breathing room</strong> — not for you. The finance office will use it to bump your payment back up with add-ons. <strong style={{fontWeight:600}}>Negotiate the out-the-door price. Never the payment.</strong>
+                Stretching to {strMo} months created <strong style={{fontWeight:600}}>{$d(leg)}/mo of breathing room</strong> — not for you. The finance office will use it to bump your payment back up with add-ons. <strong style={{fontWeight:600}}>Negotiate the out-the-door price. Never the payment.</strong>
               </Alert>
             </Card>
           )}
