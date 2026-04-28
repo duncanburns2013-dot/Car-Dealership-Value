@@ -177,9 +177,9 @@ export default function App(){
   const cTier=CREDIT_TIERS.find(t=>{const[lo,hi]=t.range.split("–").map(Number);return cs>=lo&&cs<=hi;})||CREDIT_TIERS[2];
 
   let score=100,flags=[];
-  if(rt>=10){score-=25;flags.push({t:"red",msg:`Interest rate of ${rt}% is very high — shop for a better rate before signing`});}
-  else if(rt>=8){score-=15;flags.push({t:"red",msg:`Interest rate of ${rt}% is high — pre-approved financing could save thousands`});}
-  else if(rt>=6.5){score-=8;flags.push({t:"amber",msg:`Interest rate of ${rt}% is above average — consider shopping rates`});}
+  if(rt>=10){score-=40;flags.push({t:"red",msg:`Interest rate of ${rt}% is very high — shop for a better rate before signing`});}
+  else if(rt>=8){score-=30;flags.push({t:"red",msg:`Interest rate of ${rt}% is high — pre-approved financing could save thousands`});}
+  else if(rt>=6.5){score-=12;flags.push({t:"amber",msg:`Interest rate of ${rt}% is above average — consider shopping rates`});}
   if(strMo&&strMo>60){score-=20;flags.push({t:"red",msg:`Loan stretched to ${strMo} months — ${$$(xInt)} more in interest vs 60 months`});}
   if(leg>30){score-=15;flags.push({t:"amber",msg:`${$d(leg)}/mo dealer "leg" — ${$$(legLife)} of room to load add-ons`});}
   if(tGap!==null&&tGap>500){score-=15;flags.push({t:"red",msg:`Trade offer is ${$$(tGap)} below your best outside appraisal`});}
@@ -270,7 +270,7 @@ export default function App(){
                 <Stat label="Extra interest" value={$$(xInt)}       sub="vs 60-month loan"        tone="red"/>
               </div>
               <Alert tone="amber">
-                Stretching to {strMo} months created <strong style={{fontWeight:600}}>{$d(leg)}/mo of breathing room</strong> — not for you. The finance office will use it to bump your payment back up with add-ons. <strong style={{fontWeight:600}}>Negotiate the out-the-door price. Never the payment.</strong>
+                Stretching to {strMo} months created <shtrong style={{fontWeight:6h00}}>{$d(leg)}/mo of breathing room</strong> — not for you. The finance office will use it to bump your payment back up with add-ons. <strong style={{fontWeight:600}}>Negotiate the out-the-door price. Never the payment.</strong>
               </Alert>
             </Card>
           )}
