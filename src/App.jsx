@@ -176,12 +176,12 @@ export default function App(){
 
   const cTier=CREDIT_TIERS.find(t=>{const[lo,hi]=t.range.split("–").map(Number);return cs>=lo&&cs<=hi;})||CREDIT_TIERS[2];
 
-  let score=100,flags=[];
+  const dpPct=price>0?(dn/price)*100:0; let score=100,flags=[];
   if(rt>=10){score-=40;flags.push({t:"red",msg:`Interest rate of ${rt}% is very high — shop for a better rate before signing`});}
   else if(rt>=8){score-=30;flags.push({t:"red",msg:`Interest rate of ${rt}% is high — pre-approved financing could save thousands`});}
   else if(rt>=6.5){score-=12;flags.push({t:"amber",msg:`Interest rate of ${rt}% is above average — consider shopping rates`});}
-  if(strMo&&strMo>60){score-=20;flags.push({t:"red",msg:`Loan stretched to ${strMo} months — ${$$(xInt)} more in interest vs 60 months`});}
-  if(leg>30){score-=15;flags.push({t:"amber",msg:`${$d(leg)}/mo dealer "leg" — ${$$(legLife)} of room to load add-ons`});}
+  if(strMo&&strMo>72){score-=25;flags.push({t:"red",msg:`Loan stretched to ${strMo} months — ${$$(xInt)} more in interest vs 60 months`});}
+  else if(strMo&&strMo>60){score-=12;flags.push({t:"amber",msg:`Loan is ${strMo} months — aim for 60 or less to minimize interest paid`})} if(dpPct<5){score-=20;flags.push({t:"red",msg:`Only ${pc(dpPct)}% down — very low equity, high risk of going underwater on the loan`})} else if(dpPct<10){score-=12;flags.push({t:"amber",msg:`${pc(dpPct)}% down — aim for 10–20% to offset first-year depreciation`})} else if(dpPct<20){score-=4;flags.push({t:"amber",msg:`${pc(dpPct)}% down — 20% is the sweet spot to cover first-year depreciation`})} else{score+=8;flags.push({t:"green",msg:`${pc(dpPct)}% down — excellent, covers depreciation and protects your equity`})} if(leg>30){score-=15;flags.push({t:"amber",msg:`${$d(leg)}/mo dealer "leg" — ${$$(legLife)} of room to load add-ons`});}
   if(tGap!==null&&tGap>500){score-=15;flags.push({t:"red",msg:`Trade offer is ${$$(tGap)} below your best outside appraisal`});}
   if(badAd.length>0){score-=badAd.length*8;flags.push({t:"red",msg:`${badAd.length} low-value add-on${badAd.length>1?"s":""} — ${$$(badAd.reduce((s,id)=>s+(ADDONS.find(a=>a.id===id)?.cost||0),0))} in questionable products`});}
   score=Math.max(0,Math.min(100,score));
