@@ -102,7 +102,7 @@ function Stat({label,value,sub,tone}){
 
 function Slider({label,min,max,step,value,onChange,display}){
   return(
-    <div style={{display:"grid",gridTemplateColumns:"110px 1fr 76px",alignItems:"center",gap:12}}>
+    <div className="slider-row">
       <label style={{fontSize:12,color:"var(--tx-2)"}}>{label}</label>
       <input type="range" min={min} max={max} step={step} value={value} onChange={e=>onChange(+e.target.value)}/>
       <div style={{background:"var(--surface)",border:"1px solid var(--border-md)",borderRadius:"var(--radius-md)",padding:"4px 8px",fontSize:12,fontWeight:500,textAlign:"center",color:"var(--amber)",fontFamily:"var(--font-mono)"}}>{display}</div>
