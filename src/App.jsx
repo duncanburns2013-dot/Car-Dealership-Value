@@ -155,6 +155,8 @@ export default function App(){
   const[resid,setResid]=useState(57);
   const[miles,setMiles]=useState(12000);
   const[acqFee,setAcqFee]=useState(895);
+  const[leaseMode,setLeaseMode]=useState("payment"); // "payment" = solve rate from dealer quote; "rate" = solve payment from rate
+  const[quotePay,setQuotePay]=useState(425);
 
   const prin=price-dn;
   const p60=calcPmt(prin,rt,60),p72=calcPmt(prin,rt,72),p84=calcPmt(prin,rt,84);
@@ -192,12 +194,23 @@ export default function App(){
   score=Math.max(0,Math.min(100,score));
 
   // ── Lease vs. Buy ──
-  const mf=rt/2400;                                   // money factor = APR / 2400
-  const residDollar=price*(resid/100);                // residual (≈ market value at term end)
+  const residDollar=price*(resid/100);                // residual (% of MSRP ≈ market value at term end)
   const adjCap=Math.max(0,price-dn)+acqFee;           // adjusted cap cost (acq fee capitalized)
-  const leaseDepr=Math.max(0,(adjCap-residDollar)/leaseTerm);
-  const leaseRent=(adjCap+residDollar)*mf;
-  const leaseMo=Math.max(0,leaseDepr+leaseRent);      // monthly (pre-tax)
+  const leaseDepr=Math.max(0,(adjCap-residDollar)/leaseTerm); // monthly depreciation
+  const capPlusResid=adjCap+residDollar;
+  // Two directions. "rate": you know the APR → solve the payment.
+  // "payment": you have the dealer's quoted payment → reverse-solve the hidden money factor & APR.
+  let mf, leaseApr, leaseMo;
+  if(leaseMode==="payment"){
+    leaseMo=Math.max(0,quotePay);
+    mf=capPlusResid>0?(leaseMo-leaseDepr)/capPlusResid:0;
+    leaseApr=mf*2400;
+  }else{
+    leaseApr=rt;
+    mf=leaseApr/2400;
+    leaseMo=Math.max(0,leaseDepr+capPlusResid*mf);    // payment = depreciation + rent charge
+  }
+  const rateTone=leaseApr<0?"amber":leaseApr>=8?"red":leaseApr>=6.5?"amber":"green";
   const dispFee=395;                                  // typical end-of-lease disposition fee (waived if you buy the car)
   const leaseCashOut=dn+leaseMo*leaseTerm+dispFee;    // total cash over the lease incl. disposition fee; $0 equity at end
   // Buying, measured over the SAME window as the lease
@@ -210,10 +223,11 @@ export default function App(){
   const buyNetCost=buyCashOut-buyEquity;              // real cost once equity is counted
   const overMiles=miles<15000?Math.round((15000-miles)*(leaseTerm/12)*0.25):0;
   const leaseFlags=[];
-  if(dn>0)        leaseFlags.push(["red",  `${$$(dn)} down on a lease`,               `You don't own the car, so this cash builds no equity — and if it's totaled or stolen early, you can lose it outright. Lease with $0 down; GAP is usually already built into the lease, so just confirm it's included. The payment barely moves.`]);
-  if(rt>=8)       leaseFlags.push(["red",  `${pc(rt)} APR hidden in the money factor`, `A money factor of ${mf.toFixed(5)} is a high lease rate. Money factors are negotiable and vary by lender — get it in writing and shop captive-lender vs. bank programs.`]);
-  else if(rt>=6.5)leaseFlags.push(["amber",`${pc(rt)} APR built into the money factor`, `Above-average for a lease. Confirm the money factor (${mf.toFixed(5)}) and ask what a better-qualified buyer would get.`]);
-  if(resid<50)    leaseFlags.push(["amber",`${pc(resid)} residual`,                    `A low residual means the car depreciates hard — expensive to lease. Strong lease candidates hold 55%+ of value at 36 months.`]);
+  if(dn>0)             leaseFlags.push(["red",  `${$$(dn)} down on a lease`,               `You don't own the car, so this cash builds no equity — and if it's totaled or stolen early, you can lose it outright. Lease with $0 down; GAP is usually already built into the lease, so just confirm it's included. The payment barely moves.`]);
+  if(leaseApr<0)       leaseFlags.push(["amber",`Implied money factor is negative`,       `Your quote is below pure depreciation, so the math backs out a negative rate. That's either a manufacturer-subsidized lease (great) or a sign the price or residual you entered don't match the quote — double-check both.`]);
+  else if(leaseApr>=8) leaseFlags.push(["red",  `${pc(leaseApr)} APR hidden in the money factor`, `A money factor of ${mf.toFixed(5)} is a high lease rate. Money factors are negotiable and vary by lender — get it in writing and shop captive-lender vs. bank programs.`]);
+  else if(leaseApr>=6.5)leaseFlags.push(["amber",`${pc(leaseApr)} APR built into the money factor`, `Above-average for a lease. Confirm the money factor (${mf.toFixed(5)}) and ask what a better-qualified buyer would get.`]);
+  if(resid<50)         leaseFlags.push(["amber",`${pc(resid)} residual`,                    `A low residual means the car depreciates hard — expensive to lease. Strong lease candidates hold 55%+ of value at 36 months.`]);
   if(miles<=10000)leaseFlags.push(["amber",`${(miles/1000)}k miles/year is tight`,     `Overage runs $0.15–$0.30/mi. Driving 15k on this allowance could cost about ${$$(overMiles)} at lease-end — buying extra miles up front is cheaper than paying the penalty.`]);
 
   const TABS=["Loan stretch","Lease vs. Buy","Trade-in","Finance office","Deal score","Learn"];
@@ -312,27 +326,43 @@ export default function App(){
       {/* ── TAB 1: Lease vs. Buy ── */}
       {tab===1&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <Alert tone="amber">Leasing looks cheaper every month — because you're <strong style={{fontWeight:600}}>renting, not buying</strong>. The dealer buries the interest rate inside a <em>"money factor"</em> and profits on the gap between the car's real value and what they say it's worth. Here's the honest side-by-side, using your numbers from the Loan stretch tab.</Alert>
+          <Alert tone="amber">Leasing looks cheaper every month — because you're <strong style={{fontWeight:600}}>renting, not buying</strong>. The dealer quotes you a monthly payment and <strong style={{fontWeight:600}}>hides the interest rate inside a "money factor."</strong> Enter the lease you're being offered below and this backs out the real rate — then shows lease vs. buy honestly.</Alert>
 
           <Card accent="#22d3ee">
-            <CardHead title="Lease terms" subtitle="Price, down payment & rate carry over from Loan stretch"/>
+            <CardHead title="Your lease deal" subtitle="Enter what you're being offered — no need to touch the other tabs"/>
+            <div style={{display:"flex",gap:5,background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--radius-md)",padding:4}}>
+              {[["payment","I have a dealer quote"],["rate","I know the rate"]].map(([m,lbl])=>(
+                <button key={m} onClick={()=>setLeaseMode(m)} style={{flex:1,padding:"8px 10px",borderRadius:"var(--radius-sm)",border:"none",cursor:"pointer",fontSize:12,fontWeight:leaseMode===m?600:500,background:leaseMode===m?"var(--cyan-glow)":"transparent",color:leaseMode===m?"var(--cyan-tx)":"var(--tx-2)",transition:"background .15s,color .15s"}}>{lbl}</button>
+              ))}
+            </div>
             <div style={{display:"flex",flexDirection:"column",gap:13}}>
-              <Slider label="Lease term"      min={24}   max={48}    step={3}    value={leaseTerm} onChange={setLeaseTerm} display={`${leaseTerm} mo`}/>
-              <Slider label="Residual value"  min={40}   max={70}    step={1}    value={resid}     onChange={setResid}     display={pc(resid)}/>
-              <Slider label="Annual mileage"  min={10000} max={20000} step={1000} value={miles}     onChange={setMiles}     display={`${miles/1000}k mi`}/>
-              <Slider label="Acquisition fee" min={0}    max={1500}  step={5}    value={acqFee}    onChange={setAcqFee}    display={$$(acqFee)}/>
+              <Slider label="Vehicle price"   min={10000} max={100000} step={500}  value={price}     onChange={setPrice}     display={$$(price)}/>
+              <Slider label="Cash down"       min={0}     max={25000}  step={500}  value={dn}        onChange={setDn}        display={$$(dn)}/>
+              {leaseMode==="payment"
+                ? <Slider label="Dealer's quote" min={100} max={1500}  step={5}    value={quotePay}  onChange={setQuotePay}  display={$d(quotePay)+"/mo"}/>
+                : <Slider label="Interest rate"  min={1}   max={22}    step={0.25} value={rt}        onChange={setRt}        display={pc(rt)}/>}
+              <Slider label="Lease term"      min={24}    max={48}     step={3}    value={leaseTerm} onChange={setLeaseTerm} display={`${leaseTerm} mo`}/>
+              <Slider label="Residual value"  min={40}    max={70}     step={1}    value={resid}     onChange={setResid}     display={pc(resid)}/>
+              <Slider label="Annual mileage"  min={10000} max={20000}  step={1000} value={miles}     onChange={setMiles}     display={`${miles/1000}k mi`}/>
+              <Slider label="Acquisition fee" min={0}     max={1500}   step={5}    value={acqFee}    onChange={setAcqFee}    display={$$(acqFee)}/>
             </div>
           </Card>
 
           <Card accent="#22d3ee">
-            <CardHead title="The money-factor trick" subtitle="What the dealer writes on the lease worksheet"/>
+            <CardHead
+              title={leaseMode==="payment"?"The rate the dealer's hiding":"The money-factor trick"}
+              subtitle={leaseMode==="payment"?`Backed out of the ${$d(quotePay)}/mo they quoted you`:"What the dealer writes on the lease worksheet"}/>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10}}>
-              <Stat label="Money factor" value={mf.toFixed(5)}  sub="How it's quoted"/>
-              <Stat label="× 2400"       value={pc(rt)}         sub="Your real APR" tone={rt>=9?"red":rt>=7?"amber":"green"}/>
+              <Stat label="Money factor" value={mf.toFixed(5)}   sub="How it's quoted"/>
+              <Stat label="× 2400"       value={pc(leaseApr)}    sub="Your real APR" tone={rateTone}/>
               <Stat label="Residual"     value={$$(residDollar)} sub={`${pc(resid)} of MSRP`}/>
             </div>
-            <Alert tone={rt>=9?"red":rt>=7?"amber":"green"}>
-              A money factor of <strong style={{fontWeight:600}}>{mf.toFixed(5)}</strong> is just <strong style={{fontWeight:600}}>{pc(rt)} APR</strong> in disguise — multiply any money factor by 2400. Always ask for it directly; a tempting monthly payment can still hide a brutal rate.
+            <Alert tone={rateTone}>
+              {leaseApr<0
+                ? <>That <strong style={{fontWeight:600}}>{$d(quotePay)}/mo</strong> works out to a <strong style={{fontWeight:600}}>negative money factor</strong> — either a manufacturer-subsidized lease (great) or the price/residual don't match the quote. Double-check those two numbers.</>
+                : leaseMode==="payment"
+                  ? <>That <strong style={{fontWeight:600}}>{$d(quotePay)}/mo</strong> quote hides a money factor of <strong style={{fontWeight:600}}>{mf.toFixed(5)}</strong> — about <strong style={{fontWeight:600}}>{pc(leaseApr)} APR</strong> (money factor × 2400). Get the money factor in writing; a tempting payment can still hide a brutal rate.</>
+                  : <>A money factor of <strong style={{fontWeight:600}}>{mf.toFixed(5)}</strong> is just <strong style={{fontWeight:600}}>{pc(leaseApr)} APR</strong> in disguise — multiply any money factor by 2400. Always ask for it directly; a tempting monthly payment can still hide a brutal rate.</>}
             </Alert>
           </Card>
 
