@@ -1,6 +1,6 @@
 # 🚗 Car Deal Analyzer
 
-### 🔗 **[Open the live site →](https://duncanburns2013-dot.github.io/Car-Dealership-Value/)**
+### 🔗 **[Open the live site →](https://mycardealanalyzer.com)**
 
 **Know what the dealership knows — before you sign.** A free, no-signup tool that exposes the tactics dealers use and helps you sanity-check whether a car deal is actually fair.
 
@@ -25,7 +25,7 @@ Experian publishes roughly a quarter in arrears, so re-check `CREDIT_TIERS` and 
 
 ## Tech
 
-Vite + React single-page app. Every push to `main` auto-deploys to GitHub Pages.
+Vite + React single-page app. Every push to `main` auto-deploys to Vercel; pull requests get their own preview URL.
 
 ## Run locally
 
