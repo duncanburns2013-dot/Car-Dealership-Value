@@ -46,6 +46,22 @@ function Ring({score}){
   );
 }
 
+function Toggle({value,onChange,options}){
+  return(
+    <div style={{display:"inline-flex",background:"var(--surface-alt)",border:"1px solid var(--border)",borderRadius:99,padding:3,gap:2}}>
+      {options.map(o=>(
+        <button key={o.v} onClick={()=>onChange(o.v)} style={{
+          background:value===o.v?"var(--surface)":"transparent",
+          border:`1px solid ${value===o.v?"var(--border-hi)":"transparent"}`,
+          color:value===o.v?"var(--tx)":"var(--tx-2)",
+          fontWeight:value===o.v?600:400,fontSize:12,padding:"5px 15px",
+          borderRadius:99,cursor:"pointer",transition:"background .15s, color .15s"
+        }}>{o.l}</button>
+      ))}
+    </div>
+  );
+}
+
 function Pill({tone,children}){
   const map={
     red:  ["var(--red-glow)","var(--red-tx)"],
@@ -130,6 +146,18 @@ const CREDIT_TIERS=[
   {label:"Deep subprime",range:"300–500",aprNew:16.01,aprUsed:21.77,color:"#ef4444"},
 ];
 
+// Market benchmarks. Amount financed and term: Experian State of the Automotive
+// Finance Market, Q1 2026. Used listing price: Cox Automotive / vAuto, June 2026.
+// Annual mileage: FHWA. Factory warranty: prevailing industry terms.
+const BENCH={
+  new: {financed:43925, term:69.5, label:"new"},
+  used:{financed:27070, term:67.7, label:"used", listPrice:27027},
+};
+const MPY_NORM=13500;                 // avg miles driven per vehicle per year (FHWA)
+const WARRANTY={b2b:{yrs:3,mi:36000,label:"Bumper-to-bumper"},
+                ptrain:{yrs:5,mi:60000,label:"Powertrain"}};
+const CUR_YEAR=2026;
+
 const EXPLAINERS=[
   {id:"apr",    pill:["blue","Core concept"],  title:"What is APR — and why 1% matters more than you think",       body:"APR is the true yearly cost of borrowing. On a $43,925 loan over 60 months, a single 1-point rate drop saves about $1,230 — roughly the cost of an extended warranty. Your credit score is the biggest lever. Shop multiple lenders before visiting any dealer.",                                                       s1:["Avg financed, new car","$43,925"],         s2:["1pt APR drop saves","≈ $1,230 over 60 mo"]},
   {id:"terms",  pill:["amber","Watch out"],    title:"Why shorter loan terms almost always win",                    body:"Longer terms lower monthly payments but cost substantially more in total interest — and leave you underwater (owing more than the car is worth) longer. The average new loan term hit 70.4 months in Q2 2026, and 36.5% of new-car financers signed for 73 months or longer — with 23.9% going 84 months or more, a record. Aim for 60 months or less.",     s1:["Avg new loan term","70.4 months (Q2 2026)"],s2:["Signed 84+ months","23.9% — a record"]},
@@ -151,6 +179,9 @@ export default function App(){
   const[adMo,setAdMo]=useState(60);
   const[adRt,setAdRt]=useState(7);
   const[cs,setCs]=useState(720);
+  const[cond,setCond]=useState("new");        // "new" | "used" — sets which APR benchmark applies
+  const[myear,setMyear]=useState(2022);
+  const[odo,setOdo]=useState(45000);
   const[openEx,setOpenEx]=useState(null);
   const[leaseTerm,setLeaseTerm]=useState(36);
   const[resid,setResid]=useState(57);
@@ -185,13 +216,40 @@ export default function App(){
 
   const cTier=CREDIT_TIERS.find(t=>{const[lo,hi]=t.range.split("–").map(Number);return cs>=lo&&cs<=hi;})||CREDIT_TIERS[2];
 
+  // ── New vs. used ──
+  const isUsed=cond==="used";
+  const bench=BENCH[cond];
+  const benchApr=isUsed?cTier.aprUsed:cTier.aprNew;   // the rate someone with this credit actually gets
+  const aprGap=rt-benchApr;                           // how far your quote sits from that
+  const vehAge=Math.max(0,CUR_YEAR-myear);
+  const mpy=isUsed?Math.round(odo/Math.max(vehAge,1)):0;   // miles/yr; <1yr treated as 1 to stay conservative
+  // Factory coverage runs out on time OR miles, whichever comes first.
+  function warrantyLeft(w){
+    const yLeft=w.yrs-vehAge, mLeft=w.mi-odo;
+    if(yLeft<=0||mLeft<=0) return null;
+    const yrsOfMiles=mpy>0?mLeft/mpy:Infinity;
+    return {yLeft, mLeft, binds:yrsOfMiles<yLeft?"miles":"time", yearsLeft:Math.min(yLeft,yrsOfMiles)};
+  }
+  const b2bLeft=isUsed?warrantyLeft(WARRANTY.b2b):null;
+  const ptLeft =isUsed?warrantyLeft(WARRANTY.ptrain):null;
+
   const dpPct=price>0?(dn/price)*100:0; let score=100,flags=[];
-  if(rt>=10){score-=40;flags.push({t:"red",msg:`Interest rate of ${rt}% is very high — shop for a better rate before signing`});}
-  else if(rt>=8){score-=30;flags.push({t:"red",msg:`Interest rate of ${rt}% is high — pre-approved financing could save thousands`});}
-  else if(rt>=6.5){score-=12;flags.push({t:"amber",msg:`Interest rate of ${rt}% is above average — consider shopping rates`});}
+  // Judge the rate against what this credit tier actually gets on this kind of
+  // car — a 9% used-car loan is ordinary for prime credit, but alarming on a new one.
+  if(aprGap>=4)        {score-=40;flags.push({t:"red",  msg:`${pc(rt)} is ${pc(aprGap)} above the ${pc(benchApr)} average for ${cTier.label} credit on a ${bench.label} car — shop this hard before you sign`});}
+  else if(aprGap>=2)   {score-=30;flags.push({t:"red",  msg:`${pc(rt)} is well above the ${pc(benchApr)} ${bench.label}-car average for ${cTier.label} credit — a pre-approval could save thousands`});}
+  else if(aprGap>=0.75){score-=12;flags.push({t:"amber",msg:`${pc(rt)} is above the ${pc(benchApr)} ${bench.label}-car average for your credit tier — worth shopping`});}
+  else if(aprGap<=-0.75){score+=5;flags.push({t:"green",msg:`${pc(rt)} beats the ${pc(benchApr)} ${bench.label}-car average for ${cTier.label} credit — good financing`});}
   if(strMo&&strMo>72){score-=25;flags.push({t:"red",msg:`Loan stretched to ${strMo} months — ${$$(xInt)} more in interest vs 60 months`});}
   else if(strMo&&strMo>60){score-=12;flags.push({t:"amber",msg:`Loan is ${strMo} months — aim for 60 or less to minimize interest paid`})} if(dpPct<5){score-=20;flags.push({t:"red",msg:`Only ${pc(dpPct)} down — very low equity, high risk of going underwater on the loan`})} else if(dpPct<10){score-=12;flags.push({t:"amber",msg:`${pc(dpPct)} down — aim for 10–20% to offset first-year depreciation`})} else if(dpPct<20){score-=4;flags.push({t:"amber",msg:`${pc(dpPct)} down — 20% is the sweet spot to cover first-year depreciation`})} else{score+=8;flags.push({t:"green",msg:`${pc(dpPct)} down — excellent, covers depreciation and protects your equity`})} if(leg>30){score-=15;flags.push({t:"amber",msg:`${$d(leg)}/mo dealer "leg" — ${$$(legLife)} of room to load add-ons`});}
   if(tGap!==null&&tGap>500){score-=15;flags.push({t:"red",msg:`Trade offer is ${$$(tGap)} below your best outside appraisal`});}
+  if(isUsed){
+    if(mpy>=18000)      {score-=12;flags.push({t:"amber",msg:`${mpy.toLocaleString()} miles/year — far above the ~${(MPY_NORM/1000)}k average, so this car is worn beyond what the odometer suggests`});}
+    else if(mpy>=15000) {score-=6; flags.push({t:"amber",msg:`${mpy.toLocaleString()} miles/year is above average use — budget for wear items sooner`});}
+    else if(mpy>0&&mpy<7000){score-=4;flags.push({t:"amber",msg:`Only ${mpy.toLocaleString()} miles/year — unusually low. Ask for service records; cars that sit suffer too (dried seals, old fluids, flat-spotted tyres)`});}
+    if(odo>=100000)     {score-=8; flags.push({t:"amber",msg:`${odo.toLocaleString()} miles — past 100k, budget for timing belt, suspension and fluid service`});}
+    if(ptLeft)          {score+=5; flags.push({t:"green",msg:`Still under factory powertrain warranty for about ${ptLeft.yearsLeft.toFixed(1)} more years — a materially safer used buy`});}
+  }
   if(badAd.length>0){score-=badAd.length*8;flags.push({t:"red",msg:`${badAd.length} low-value add-on${badAd.length>1?"s":""} — ${$$(badAd.reduce((s,id)=>s+(ADDONS.find(a=>a.id===id)?.cost||0),0))} in questionable products`});}
   score=Math.max(0,Math.min(100,score));
 
@@ -247,6 +305,12 @@ export default function App(){
           <p style={{margin:"5px 0 12px",fontSize:13,color:"var(--tx-2)"}}>Know what the dealership knows — before you sign</p>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
             {["Focus on out-the-door price","Separate your trade","Pre-approve your own loan"].map((h,i)=><Pill key={i} tone="gray">{h}</Pill>)}
+          </div>
+          <div style={{marginTop:12,display:"flex",alignItems:"center",gap:11,flexWrap:"wrap"}}>
+            <Toggle value={cond} onChange={setCond} options={[{v:"new",l:"New car"},{v:"used",l:"Used car"}]}/>
+            <span style={{fontSize:11,color:"var(--tx-3)",lineHeight:1.4}}>
+              Sets the APR your deal is judged against — {pc(cTier.aprNew)} new vs {pc(cTier.aprUsed)} used at {cs}
+            </span>
           </div>
         </div>
         <Ring score={score}/>
@@ -555,14 +619,42 @@ export default function App(){
               ?<Alert tone="green">No red flags detected. Fill in your deal details across the other tabs for a full analysis.</Alert>
               :<div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {flags.map((f,i)=>(
-                  <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",background:f.t==="red"?"var(--red-glow)":"var(--amber-glow)",border:`1px solid ${f.t==="red"?"var(--red-border)":"var(--amber-border)"}`,borderRadius:"var(--radius-md)",padding:"10px 12px"}}>
-                    <Pill tone={f.t}>{f.t==="red"?"red flag":"caution"}</Pill>
-                    <p style={{margin:0,fontSize:13,color:f.t==="red"?"var(--red-tx)":"var(--amber-tx)",lineHeight:1.5}}>{f.msg}</p>
+                  <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",background:`var(--${f.t}-glow)`,border:`1px solid var(--${f.t}-border)`,borderRadius:"var(--radius-md)",padding:"10px 12px"}}>
+                    <Pill tone={f.t}>{f.t==="red"?"red flag":f.t==="green"?"in your favor":"caution"}</Pill>
+                    <p style={{margin:0,fontSize:13,color:`var(--${f.t}-tx)`,lineHeight:1.5}}>{f.msg}</p>
                   </div>
                 ))}
               </div>
             }
           </Card>
+
+          {isUsed&&(
+          <Card accent="#22d3ee">
+            <CardHead title="Age and mileage" subtitle="What the odometer says about wear, warranty and what's left to pay for"/>
+            <div style={{display:"flex",flexDirection:"column",gap:13,marginBottom:15}}>
+              <Slider label="Model year" min={2005} max={CUR_YEAR} step={1}    value={myear} onChange={setMyear} display={myear}/>
+              <Slider label="Odometer"   min={0}    max={200000}   step={1000} value={odo}   onChange={setOdo}   display={odo.toLocaleString()+" mi"}/>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(148px,1fr))",gap:10,marginBottom:14}}>
+              <Stat label="Miles per year" value={mpy.toLocaleString()}
+                    sub={mpy>=15000?`Above the ~${(MPY_NORM/1000)}k norm`:mpy<7000?"Unusually low":"Normal use"}
+                    tone={mpy>=18000?"red":mpy>=15000||mpy<7000?"amber":"green"}/>
+              <Stat label="Vehicle age" value={vehAge===0?"Current year":`${vehAge} yr`}
+                    sub={`${myear} model`}/>
+              <Stat label="Bumper-to-bumper" value={b2bLeft?`${b2bLeft.yearsLeft.toFixed(1)} yr left`:"Expired"}
+                    sub={b2bLeft?(b2bLeft.binds==="miles"?`${b2bLeft.mLeft.toLocaleString()} mi to go`:`${b2bLeft.yLeft} yr to go`):"3 yr / 36k typical"}
+                    tone={b2bLeft?"green":"amber"}/>
+              <Stat label="Powertrain" value={ptLeft?`${ptLeft.yearsLeft.toFixed(1)} yr left`:"Expired"}
+                    sub={ptLeft?(ptLeft.binds==="miles"?`${ptLeft.mLeft.toLocaleString()} mi to go`:`${ptLeft.yLeft} yr to go`):"5 yr / 60k typical"}
+                    tone={ptLeft?"green":"amber"}/>
+            </div>
+            <Alert tone={ptLeft?"green":"amber"}>
+              {ptLeft
+                ? <>This car still carries factory powertrain coverage for roughly <strong style={{fontWeight:600}}>{ptLeft.yearsLeft.toFixed(1)} more years</strong> — {ptLeft.binds==="miles"?`mileage runs out first at your ${mpy.toLocaleString()} mi/yr`:"time runs out before mileage"}. An extended warranty sold to you today overlaps coverage you already own. Ask exactly when it starts, and price it again nearer the expiry.</>
+                : <>Factory coverage is finished on the standard <strong style={{fontWeight:600}}>3 yr / 36,000 mile</strong> and <strong style={{fontWeight:600}}>5 yr / 60,000 mile</strong> terms, so repairs are yours from here. Hyundai and Kia run 10 yr / 100,000 miles on the powertrain but only for the original owner — it does not transfer to you. A pre-purchase inspection is worth more than any add-on in the finance office.</>}
+            </Alert>
+          </Card>
+          )}
 
           <Card accent="#60a5fa">
             <CardHead title="Credit score and APR" subtitle="See how your score affects the rate you'll be offered"/>
@@ -582,7 +674,7 @@ export default function App(){
               })}
             </div>
             <Alert tone={cTier.label==="Super prime"||cTier.label==="Prime"?"green":cTier.label==="Near prime"?"amber":"red"}>
-              At {cs} ({cTier.label}), expect roughly <strong style={{fontWeight:600}}>{pc(cTier.aprNew)} APR on a new car</strong> and {pc(cTier.aprUsed)} on used. Get pre-approved at your bank or credit union first — then challenge the dealer to beat it.
+              At {cs} ({cTier.label}), expect roughly <strong style={{fontWeight:600}}>{pc(benchApr)} APR on a {bench.label} car</strong> — {isUsed?`a new one would be about ${pc(cTier.aprNew)}`:`a used one would be about ${pc(cTier.aprUsed)}`}. Used-car money always costs more, because the collateral is worth less and depreciates less predictably. Get pre-approved at your bank or credit union first — then challenge the dealer to beat it.
             </Alert>
           </Card>
 
@@ -650,13 +742,14 @@ export default function App(){
           </div>
 
           <Card accent="#a78bfa">
-            <CardHead title="APR savings by credit tier" subtitle="$43,925 loan · 60 months · right column = extra vs super-prime credit"/>
+            <CardHead title="APR savings by credit tier" subtitle={`${$$(bench.financed)} ${bench.label} loan · 60 months · right column = extra vs super-prime credit`}/>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {CREDIT_TIERS.map((t,i)=>{
-                const loan=43925,monthly=calcPmt(loan,t.aprNew,60),totalInt=monthly*60-loan;
-                const bestInt=calcPmt(loan,CREDIT_TIERS[0].aprNew,60)*60-loan;
+                const apr=a=>isUsed?a.aprUsed:a.aprNew;
+                const loan=bench.financed,monthly=calcPmt(loan,apr(t),60),totalInt=monthly*60-loan;
+                const bestInt=calcPmt(loan,apr(CREDIT_TIERS[0]),60)*60-loan;
                 const extra=totalInt-bestInt;
-                const maxInt=calcPmt(loan,CREDIT_TIERS[4].aprNew,60)*60-loan;
+                const maxInt=calcPmt(loan,apr(CREDIT_TIERS[4]),60)*60-loan;
                 return(
                   <div key={i}>
                     <div style={{display:"grid",gridTemplateColumns:"90px 1fr 85px 80px",gap:10,alignItems:"center",marginBottom:5}}>
