@@ -120,22 +120,23 @@ const ADDONS=[
   {id:"etch",label:"VIN etching",cost:350,skip:true,tip:"DIY kits cost $20. Manufacturers already stamp VINs in multiple locations — the 'theft deterrent' claim is marketing."},
 ];
 
-// Average auto APRs by Experian VantageScore tier (2025 close / Q1 2026)
+// Average auto APRs by Experian VantageScore 4.0 tier — State of the
+// Automotive Finance Market, Q1 2026 (latest published as of Aug 2026).
 const CREDIT_TIERS=[
-  {label:"Super prime",  range:"781–850",aprNew:4.6, aprUsed:6.8, color:"#34d399"},
-  {label:"Prime",        range:"661–780",aprNew:6.3, aprUsed:9.0, color:"#6ee7b7"},
-  {label:"Near prime",   range:"601–660",aprNew:9.6, aprUsed:14.2,color:"#f59e0b"},
-  {label:"Subprime",     range:"501–600",aprNew:13.2,aprUsed:19.4,color:"#f87171"},
-  {label:"Deep subprime",range:"300–500",aprNew:16.0,aprUsed:21.8,color:"#ef4444"},
+  {label:"Super prime",  range:"781–850",aprNew:4.55, aprUsed:6.30, color:"#34d399"},
+  {label:"Prime",        range:"661–780",aprNew:6.23, aprUsed:8.77, color:"#6ee7b7"},
+  {label:"Near prime",   range:"601–660",aprNew:9.67, aprUsed:14.03,color:"#f59e0b"},
+  {label:"Subprime",     range:"501–600",aprNew:13.44,aprUsed:19.42,color:"#f87171"},
+  {label:"Deep subprime",range:"300–500",aprNew:16.01,aprUsed:21.77,color:"#ef4444"},
 ];
 
 const EXPLAINERS=[
-  {id:"apr",    pill:["blue","Core concept"],  title:"What is APR — and why 1% matters more than you think",       body:"APR is the true yearly cost of borrowing. On a $43,900 loan over 60 months, a single 1-point rate drop saves about $1,230 — roughly the cost of an extended warranty. Your credit score is the biggest lever. Shop multiple lenders before visiting any dealer.",                                                       s1:["Avg financed, new car","$43,900"],         s2:["1pt APR drop saves","≈ $1,230 over 60 mo"]},
-  {id:"terms",  pill:["amber","Watch out"],    title:"Why shorter loan terms almost always win",                    body:"Longer terms lower monthly payments but cost substantially more in total interest — and leave you underwater (owing more than the car is worth) longer. The average new loan term reached nearly 69 months by early 2026, with almost a third of new loans now running 73–84 months. Aim for 60 months or less.",     s1:["Avg new loan term","~69 months"],          s2:["72–84 mo vs 60 mo","Costs significantly more"]},
+  {id:"apr",    pill:["blue","Core concept"],  title:"What is APR — and why 1% matters more than you think",       body:"APR is the true yearly cost of borrowing. On a $43,925 loan over 60 months, a single 1-point rate drop saves about $1,230 — roughly the cost of an extended warranty. Your credit score is the biggest lever. Shop multiple lenders before visiting any dealer.",                                                       s1:["Avg financed, new car","$43,925"],         s2:["1pt APR drop saves","≈ $1,230 over 60 mo"]},
+  {id:"terms",  pill:["amber","Watch out"],    title:"Why shorter loan terms almost always win",                    body:"Longer terms lower monthly payments but cost substantially more in total interest — and leave you underwater (owing more than the car is worth) longer. The average new loan term hit 70.4 months in Q2 2026, and 36.5% of new-car financers signed for 73 months or longer — with 23.9% going 84 months or more, a record. Aim for 60 months or less.",     s1:["Avg new loan term","70.4 months (Q2 2026)"],s2:["Signed 84+ months","23.9% — a record"]},
   {id:"preapp", pill:["green","Power move"],   title:"Get pre-approved before visiting any dealership",            body:"A pre-approval letter from your bank or credit union locks in a rate before you step foot in the dealership. It becomes a negotiating tool — the dealer must beat it to earn your financing business. Credit unions typically offer lower rates than dealer lenders.",                                              s1:["Pre-approval is binding","For the lender"], s2:["You are","Never obligated to use it"]},
   {id:"down",   pill:["blue","Strategy"],      title:"How a bigger down payment changes everything",               body:"A larger down payment lowers the amount financed, reducing both monthly payments and total interest. Lenders see it as commitment and may offer better rates. More importantly, it protects against negative equity. Aim for 10–20% of the vehicle price.",                                                   s1:["Recommended down payment","10–20% of price"],s2:["Helps avoid","Negative equity"]},
-  {id:"lease",  pill:["gray","Know the diff"], title:"Financing vs. leasing — what you're actually signing",       body:"With financing, you own the car at the end and build equity. With leasing, you're renting. Monthly payments are lower but you face mileage limits (10,000–15,000/yr), wear-and-tear fees, and heavy early termination penalties. Leasing makes sense for business use but rarely builds wealth.",                 s1:["Share of new cars leased","~24%"],          s2:["Buyers taking a loan","~80% (vs ~20% cash)"]},
-  {id:"equity", pill:["red","Risk"],           title:"Negative equity — owing more than your car is worth",        body:"Cars lose value the moment you drive off the lot. With a long loan or small down payment you can quickly owe more than the car is worth — called being underwater. By Q3 2025 about 28% of trade-ins — nearly 3 in 10 — carried negative equity, with the average underwater borrower owing about $6,900 (a record). GAP coverage bridges the gap if the car is totaled while you're underwater.", s1:["Trade-ins underwater (Q3 2025)","~28%"],s2:["Avg amount owed","≈ $6,900"]},
+  {id:"lease",  pill:["gray","Know the diff"], title:"Financing vs. leasing — what you're actually signing",       body:"With financing, you own the car at the end and build equity. With leasing, you're renting. Monthly payments are lower but you face mileage limits (10,000–15,000/yr), wear-and-tear fees, and heavy early termination penalties. Leasing makes sense for business use but rarely builds wealth.",                 s1:["New cars leased (Q1 2026)","24.1%"],        s2:["Avg lease vs loan payment","$619 vs $770/mo"]},
+  {id:"equity", pill:["red","Risk"],           title:"Negative equity — owing more than your car is worth",        body:"Cars lose value the moment you drive off the lot. With a long loan or small down payment you can quickly owe more than the car is worth — called being underwater. In Q2 2026, 29.6% of trade-ins toward a new car — nearly 3 in 10 — carried negative equity, and the average underwater borrower owed $6,884. Q1 2026 was worse still: 30.9% and $7,183. GAP coverage bridges the gap if the car is totaled while you're underwater.", s1:["Trade-ins underwater (Q2 2026)","29.6%"],s2:["Avg amount owed","$6,884"]},
 ];
 
 export default function App(){
@@ -155,6 +156,7 @@ export default function App(){
   const[resid,setResid]=useState(57);
   const[miles,setMiles]=useState(12000);
   const[acqFee,setAcqFee]=useState(895);
+  const[disc,setDisc]=useState(0);            // dollars negotiated off MSRP — residual is a % of MSRP, not of your price
   const[leaseMode,setLeaseMode]=useState("payment"); // "payment" = solve rate from dealer quote; "rate" = solve payment from rate
   const[quotePay,setQuotePay]=useState(425);
 
@@ -177,7 +179,7 @@ export default function App(){
   const tGap=!isNaN(dtV)&&dtV>0&&bestT>0?bestT-dtV:null;
 
   const adTotal=addons.reduce((s,id)=>s+(ADDONS.find(a=>a.id===id)?.cost||0),0);
-  const adMonthly=adTotal>0?adTotal/adMo:0;
+  const adMonthly=adTotal>0?calcPmt(adTotal,adRt,adMo):0;   // real payment impact — principal AND interest
   const adInt=adTotal>0?calcPmt(adTotal,adRt,adMo)*adMo-adTotal:0;
   const badAd=addons.filter(id=>ADDONS.find(a=>a.id===id)?.skip);
 
@@ -188,13 +190,14 @@ export default function App(){
   else if(rt>=8){score-=30;flags.push({t:"red",msg:`Interest rate of ${rt}% is high — pre-approved financing could save thousands`});}
   else if(rt>=6.5){score-=12;flags.push({t:"amber",msg:`Interest rate of ${rt}% is above average — consider shopping rates`});}
   if(strMo&&strMo>72){score-=25;flags.push({t:"red",msg:`Loan stretched to ${strMo} months — ${$$(xInt)} more in interest vs 60 months`});}
-  else if(strMo&&strMo>60){score-=12;flags.push({t:"amber",msg:`Loan is ${strMo} months — aim for 60 or less to minimize interest paid`})} if(dpPct<5){score-=20;flags.push({t:"red",msg:`Only ${pc(dpPct)}% down — very low equity, high risk of going underwater on the loan`})} else if(dpPct<10){score-=12;flags.push({t:"amber",msg:`${pc(dpPct)}% down — aim for 10–20% to offset first-year depreciation`})} else if(dpPct<20){score-=4;flags.push({t:"amber",msg:`${pc(dpPct)}% down — 20% is the sweet spot to cover first-year depreciation`})} else{score+=8;flags.push({t:"green",msg:`${pc(dpPct)}% down — excellent, covers depreciation and protects your equity`})} if(leg>30){score-=15;flags.push({t:"amber",msg:`${$d(leg)}/mo dealer "leg" — ${$$(legLife)} of room to load add-ons`});}
+  else if(strMo&&strMo>60){score-=12;flags.push({t:"amber",msg:`Loan is ${strMo} months — aim for 60 or less to minimize interest paid`})} if(dpPct<5){score-=20;flags.push({t:"red",msg:`Only ${pc(dpPct)} down — very low equity, high risk of going underwater on the loan`})} else if(dpPct<10){score-=12;flags.push({t:"amber",msg:`${pc(dpPct)} down — aim for 10–20% to offset first-year depreciation`})} else if(dpPct<20){score-=4;flags.push({t:"amber",msg:`${pc(dpPct)} down — 20% is the sweet spot to cover first-year depreciation`})} else{score+=8;flags.push({t:"green",msg:`${pc(dpPct)} down — excellent, covers depreciation and protects your equity`})} if(leg>30){score-=15;flags.push({t:"amber",msg:`${$d(leg)}/mo dealer "leg" — ${$$(legLife)} of room to load add-ons`});}
   if(tGap!==null&&tGap>500){score-=15;flags.push({t:"red",msg:`Trade offer is ${$$(tGap)} below your best outside appraisal`});}
   if(badAd.length>0){score-=badAd.length*8;flags.push({t:"red",msg:`${badAd.length} low-value add-on${badAd.length>1?"s":""} — ${$$(badAd.reduce((s,id)=>s+(ADDONS.find(a=>a.id===id)?.cost||0),0))} in questionable products`});}
   score=Math.max(0,Math.min(100,score));
 
   // ── Lease vs. Buy ──
-  const residDollar=price*(resid/100);                // residual (% of MSRP ≈ market value at term end)
+  const msrp=price+disc;                              // sticker; the lease residual is always struck off MSRP
+  const residDollar=msrp*(resid/100);                 // residual (% of MSRP ≈ market value at term end)
   const adjCap=Math.max(0,price-dn)+acqFee;           // adjusted cap cost (acq fee capitalized)
   const leaseDepr=Math.max(0,(adjCap-residDollar)/leaseTerm); // monthly depreciation
   const capPlusResid=adjCap+residDollar;
@@ -228,7 +231,7 @@ export default function App(){
   else if(leaseApr>=8) leaseFlags.push(["red",  `${pc(leaseApr)} APR hidden in the money factor`, `A money factor of ${mf.toFixed(5)} is a high lease rate. Money factors are negotiable and vary by lender — get it in writing and shop captive-lender vs. bank programs.`]);
   else if(leaseApr>=6.5)leaseFlags.push(["amber",`${pc(leaseApr)} APR built into the money factor`, `Above-average for a lease. Confirm the money factor (${mf.toFixed(5)}) and ask what a better-qualified buyer would get.`]);
   if(resid<50)         leaseFlags.push(["amber",`${pc(resid)} residual`,                    `A low residual means the car depreciates hard — expensive to lease. Strong lease candidates hold 55%+ of value at 36 months.`]);
-  if(miles<=10000)leaseFlags.push(["amber",`${(miles/1000)}k miles/year is tight`,     `Overage runs $0.15–$0.30/mi. Driving 15k on this allowance could cost about ${$$(overMiles)} at lease-end — buying extra miles up front is cheaper than paying the penalty.`]);
+  if(overMiles>0)leaseFlags.push(["amber",`${(miles/1000)}k mile/year allowance`,     `Overage runs $0.15–$0.30/mi. Driving 15k on this allowance could cost about ${$$(overMiles)} at lease-end — buying extra miles up front is cheaper than paying the penalty.`]);
 
   const TABS=["Loan stretch","Lease vs. Buy","Trade-in","Finance office","Deal score","Learn"];
   const ACCENTS=["#f59e0b","#22d3ee","#34d399","#f87171",score>=75?"#34d399":score>=50?"#f59e0b":"#f87171","#a78bfa"];
@@ -336,7 +339,7 @@ export default function App(){
               ))}
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:13}}>
-              <Slider label="Vehicle price"   min={10000} max={100000} step={500}  value={price}     onChange={setPrice}     display={$$(price)}/>
+              <Slider label="Negotiated price" min={10000} max={100000} step={500}  value={price}     onChange={setPrice}     display={$$(price)}/>
               <Slider label="Cash down"       min={0}     max={25000}  step={500}  value={dn}        onChange={setDn}        display={$$(dn)}/>
               {leaseMode==="payment"
                 ? <Slider label="Dealer's quote" min={100} max={1500}  step={5}    value={quotePay}  onChange={setQuotePay}  display={$d(quotePay)+"/mo"}/>
@@ -345,6 +348,7 @@ export default function App(){
               <Slider label="Residual value"  min={40}    max={70}     step={1}    value={resid}     onChange={setResid}     display={pc(resid)}/>
               <Slider label="Annual mileage"  min={10000} max={20000}  step={1000} value={miles}     onChange={setMiles}     display={`${miles/1000}k mi`}/>
               <Slider label="Acquisition fee" min={0}     max={1500}   step={5}    value={acqFee}    onChange={setAcqFee}    display={$$(acqFee)}/>
+              <Slider label="Discount off MSRP" min={0}  max={15000}  step={250}  value={disc}      onChange={setDisc}      display={$$(disc)}/>
             </div>
           </Card>
 
@@ -355,7 +359,7 @@ export default function App(){
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:10}}>
               <Stat label="Money factor" value={mf.toFixed(5)}   sub="How it's quoted"/>
               <Stat label="× 2400"       value={pc(leaseApr)}    sub="Your real APR" tone={rateTone}/>
-              <Stat label="Residual"     value={$$(residDollar)} sub={`${pc(resid)} of MSRP`}/>
+              <Stat label="Residual"     value={$$(residDollar)} sub={`${pc(resid)} of ${$$(msrp)} MSRP`}/>
             </div>
             <Alert tone={rateTone}>
               {leaseApr<0
@@ -646,10 +650,10 @@ export default function App(){
           </div>
 
           <Card accent="#a78bfa">
-            <CardHead title="APR savings by credit tier" subtitle="$43,900 loan · 60 months · right column = extra vs super-prime credit"/>
+            <CardHead title="APR savings by credit tier" subtitle="$43,925 loan · 60 months · right column = extra vs super-prime credit"/>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {CREDIT_TIERS.map((t,i)=>{
-                const loan=43900,monthly=calcPmt(loan,t.aprNew,60),totalInt=monthly*60-loan;
+                const loan=43925,monthly=calcPmt(loan,t.aprNew,60),totalInt=monthly*60-loan;
                 const bestInt=calcPmt(loan,CREDIT_TIERS[0].aprNew,60)*60-loan;
                 const extra=totalInt-bestInt;
                 const maxInt=calcPmt(loan,CREDIT_TIERS[4].aprNew,60)*60-loan;
@@ -665,7 +669,7 @@ export default function App(){
                   </div>
                 );
               })}
-              <p style={{margin:"4px 0 0",fontSize:11,color:"var(--tx-3)"}}>Based on Experian average auto-loan APRs by VantageScore tier (2025–26). Actual rates vary by lender.</p>
+              <p style={{margin:"4px 0 0",fontSize:11,color:"var(--tx-3)"}}>Experian average auto-loan APRs by VantageScore 4.0 tier, State of the Automotive Finance Market Q1 2026. Actual rates vary by lender.</p>
             </div>
           </Card>
         </div>

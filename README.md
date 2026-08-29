@@ -13,7 +13,15 @@
 - **Deal score** — a live 0–100 score with red flags, plus average APR by credit tier.
 - **Learn** — plain-English explainers on APR, loan terms, negative equity, and leasing.
 
-All figures are checked against current, reputable sources (Experian, the Federal Reserve, CFPB/FTC, Edmunds, Consumer Reports).
+## Data sources
+
+Benchmark figures are current as of **August 2026** and come from:
+
+- **APR by credit tier, amount financed, lease share** — Experian, *State of the Automotive Finance Market*, Q1 2026 (VantageScore 4.0).
+- **Loan terms, negative equity, average payment** — Edmunds quarterly new-vehicle reports, Q2 2026.
+- **Disclosure rules** — Truth in Lending Act (CFPB/FTC).
+
+Experian publishes roughly a quarter in arrears, so re-check `CREDIT_TIERS` and the `EXPLAINERS` stats each quarter.
 
 ## Tech
 
