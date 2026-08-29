@@ -64,6 +64,13 @@
     --color-text-warning:       var(--amber-tx);
     --color-text-success:       var(--green-tx);
     --color-text-info:          var(--blue-tx);
+    --gutter-mask: linear-gradient(to right,
+        #000 0,
+        #000 calc(50% - 640px),
+        transparent calc(50% - 470px),
+        transparent calc(50% + 470px),
+        #000 calc(50% + 640px),
+        #000 100%);
     --color-background-primary: var(--card-bg);
     --color-background-secondary:var(--surface);
     --color-background-danger:  var(--red-glow);
@@ -107,29 +114,74 @@ body {
     text-rendering: optimizeLegibility;
 }
 
-/* ── Whisper-subtle car imagery ── screen-blended so the black melts into the
-   page and only the lit contours/headlights glow faintly through. Fixed & masked
-   into the corners so it never sits behind the numbers. */
-body::before {
+/* ── Ambient vehicle backdrop ─────────────────────────────────────────────
+   Five dark, rim-lit vehicles bled in from the page edges and screen-blended,
+   so each photo's black dissolves into the page and only the lit contours,
+   headlights and tail lights glow through. The calc() mask keeps them in the
+   gutters either side of the 1120px content column, and retires them entirely
+   on viewports too narrow to have gutters (handled in the media query). */
+body::before,
+body::after {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background-image:
-        url('./assets/car-dark-a.jpg'),
-        url('./assets/car-dark-b.jpg');
-    background-repeat: no-repeat, no-repeat;
-    background-position: right 88%, left 82%;
-    background-size: min(56%, 740px) auto, min(27%, 330px) auto;
-    opacity: 0.55;
+    background-repeat: no-repeat;
     mix-blend-mode: screen;
-    -webkit-mask-image: radial-gradient(155% 125% at 50% 42%, transparent 30%, #000 76%);
-    mask-image: radial-gradient(155% 125% at 50% 42%, transparent 30%, #000 76%);
+    -webkit-mask-image: var(--gutter-mask);
+    mask-image: var(--gutter-mask);
 }
 
-@media (max-width: 640px) {
-    body::before { background-size: 78% auto, 42% auto; opacity: 0.38; }
+/* left gutter */
+body::before {
+    background-image:
+        url('./assets/veh-offroad.jpg'),
+        url('./assets/veh-suv.jpg');
+    background-position:
+        left -13% bottom -5%,
+        left -12% top 15%;
+    background-size:
+        min(40%, 580px) auto,
+        min(34%, 500px) auto;
+    opacity: 0.36;
+}
+
+/* right gutter */
+body::after {
+    background-image:
+        url('./assets/veh-truck.jpg'),
+        url('./assets/veh-sedan.jpg'),
+        url('./assets/car-dark-a.jpg');
+    background-position:
+        right -8%  bottom 7%,
+        right -5%  top 8%,
+        right -14% top 50%;
+    background-size:
+        min(44%, 660px) auto,
+        min(30%, 440px) auto,
+        min(32%, 470px) auto;
+    opacity: 0.38;
+}
+
+/* No gutters to hide in — drop to one vehicle top and bottom, faded hard. */
+@media (max-width: 1180px) {
+    body::before {
+        background-image: url('./assets/veh-offroad.jpg');
+        background-position: left -18% bottom -2%;
+        background-size: min(80%, 540px) auto;
+        opacity: 0.30;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 40%, #000 80%);
+        mask-image: linear-gradient(to bottom, transparent 40%, #000 80%);
+    }
+    body::after {
+        background-image: url('./assets/veh-sedan.jpg');
+        background-position: right -14% top 11%;
+        background-size: min(64%, 430px) auto;
+        opacity: 0.22;
+        -webkit-mask-image: linear-gradient(to bottom, #000 18%, transparent 48%);
+        mask-image: linear-gradient(to bottom, #000 18%, transparent 48%);
+    }
 }
 
 #root {
