@@ -241,7 +241,20 @@ export default function App(){
   else if(aprGap>=0.75){score-=12;flags.push({t:"amber",msg:`${pc(rt)} is above the ${pc(benchApr)} ${bench.label}-car average for your credit tier — worth shopping`});}
   else if(aprGap<=-0.75){score+=5;flags.push({t:"green",msg:`${pc(rt)} beats the ${pc(benchApr)} ${bench.label}-car average for ${cTier.label} credit — good financing`});}
   if(strMo&&strMo>72){score-=25;flags.push({t:"red",msg:`Loan stretched to ${strMo} months — ${$$(xInt)} more in interest vs 60 months`});}
-  else if(strMo&&strMo>60){score-=12;flags.push({t:"amber",msg:`Loan is ${strMo} months — aim for 60 or less to minimize interest paid`})} if(dpPct<5){score-=20;flags.push({t:"red",msg:`Only ${pc(dpPct)} down — very low equity, high risk of going underwater on the loan`})} else if(dpPct<10){score-=12;flags.push({t:"amber",msg:`${pc(dpPct)} down — aim for 10–20% to offset first-year depreciation`})} else if(dpPct<20){score-=4;flags.push({t:"amber",msg:`${pc(dpPct)} down — 20% is the sweet spot to cover first-year depreciation`})} else{score+=8;flags.push({t:"green",msg:`${pc(dpPct)} down — excellent, covers depreciation and protects your equity`})} if(leg>30){score-=15;flags.push({t:"amber",msg:`${$d(leg)}/mo dealer "leg" — ${$$(legLife)} of room to load add-ons`});}
+  else if(strMo&&strMo>60){score-=12;flags.push({t:"amber",msg:`Loan is ${strMo} months — aim for 60 or less to minimize interest paid`})} if(dpPct<5){score-=20;flags.push({t:"red",msg:`Only ${pc(dpPct)} down — very low equity, high risk of going underwater on the loan`})} else if(dpPct<10){score-=12;flags.push({t:"amber",msg:`${pc(dpPct)} down — aim for 10–20% to offset first-year depreciation`})} else if(dpPct<20){score-=4;flags.push({t:"amber",msg:`${pc(dpPct)} down — 20% is the sweet spot to cover first-year depreciation`})} else{score+=8;flags.push({t:"green",msg:`${pc(dpPct)} down — excellent, covers depreciation and protects your equity`})} 
+  // KNOWN QUIRK — the leg penalty can invert the score against a good rate.
+  // `leg` is the gap between your target payment and the actual payment, so a
+  // BETTER rate produces a bigger gap and a bigger penalty. Worked example at
+  // prime credit on a used car, $32k / $3k down / $550 target:
+  //     7% APR -> score 71   (below market, but leg $55/mo, -15)
+  //     9% APR -> score 81   (at market, leg $27/mo, no penalty)
+  // Two things are tangled here. The leg only exists as dealer leverage if you
+  // actually told them a target payment — which this app's own advice says
+  // never to do — so penalising it unconditionally punishes people for the
+  // hypothetical. Options if revisiting: gate the penalty behind an explicit
+  // "I gave them a payment number" input, scale it by how far the rate already
+  // sits from benchmark, or drop the point deduction and keep it informational.
+  if(leg>30){score-=15;flags.push({t:"amber",msg:`${$d(leg)}/mo dealer "leg" — ${$$(legLife)} of room to load add-ons`});}
   if(tGap!==null&&tGap>500){score-=15;flags.push({t:"red",msg:`Trade offer is ${$$(tGap)} below your best outside appraisal`});}
   if(isUsed){
     if(mpy>=18000)      {score-=12;flags.push({t:"amber",msg:`${mpy.toLocaleString()} miles/year — far above the ~${(MPY_NORM/1000)}k average, so this car is worn beyond what the odometer suggests`});}
